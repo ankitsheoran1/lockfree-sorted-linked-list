@@ -1,9 +1,7 @@
 use std::ptr;
 use std::sync::atomic::{AtomicPtr, Ordering};
 
-fn main() {
-    println!("Hello, world!");
-}
+
 
 #[derive(Debug)]
 struct Node<K, V> {
@@ -98,7 +96,7 @@ V: Copy, {
 
    } 
 
-   fn insert(self, key: K, val: V, remove_nodes: &mut Vec<*mut Node<K, V>>) -> Option<*mut V> {
+   fn insert(&self, key: K, val: V, remove_nodes: &mut Vec<*mut Node<K, V>>) -> Option<*mut V> {
        let mut new_node = Box::new(Node::new(key, val));
        let mut left_node = ptr::null_mut();
 
@@ -221,7 +219,7 @@ V: Copy, {
 
                 
                 if right_node != self.tail.load(Ordering::SeqCst)    
-                    && Self::is_marked_reference(unsafe { &*right_node }.next.load(OSC))
+                    && Self::is_marked_reference(unsafe { &*right_node }.next.load(Ordering::SeqCst))
                 {
                     continue 'search;
                 } else {
@@ -236,3 +234,88 @@ V: Copy, {
 
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn linkedlist_basics() {
+        let mut remove_nodes = Vec::new();
+
+        let new_linked_list = LinkedList::default();
+
+        println!("{:?}", new_linked_list);
+        // new_linked_list.insert(3, 2, &mut remove_nodes);
+        // new_linked_list.insert(3, 4, &mut remove_nodes);
+        // new_linked_list.insert(5, 8, &mut remove_nodes);
+        // new_linked_list.insert(4, 6, &mut remove_nodes);
+        // new_linked_list.insert(1, 8, &mut remove_nodes);
+        // new_linked_list.insert(6, 6, &mut remove_nodes);
+
+        // 
+
+        new_linked_list.insert(1, 1, &mut remove_nodes);
+        new_linked_list.insert(2, 2, &mut remove_nodes);
+        new_linked_list.insert(3, 3, &mut remove_nodes);
+        new_linked_list.insert(4, 4, &mut remove_nodes);
+        new_linked_list.insert(5, 5, &mut remove_nodes);
+        new_linked_list.insert(6, 6, &mut remove_nodes);
+        new_linked_list.insert(7, 7, &mut remove_nodes);
+        new_linked_list.insert(8, 8, &mut remove_nodes);
+        new_linked_list.insert(9, 9, &mut remove_nodes);
+        new_linked_list.insert(10, 10, &mut remove_nodes);
+
+        new_linked_list.delete(&6, &mut remove_nodes);
+
+        println!("vector {:?}", remove_nodes);
+
+        println!("printing list");
+        // Print the entire linked list from head to tail
+        let mut current_node = new_linked_list.head.load(Ordering::SeqCst);
+        while current_node != new_linked_list.tail.load(Ordering::SeqCst) {
+            println!("{:?}", unsafe { &*current_node });
+            current_node = unsafe { &*current_node }.next.load(Ordering::SeqCst);
+        }
+
+      
+
+
+        //new_linked_list.print();
+
+        // assert_eq!(new_linked_list.get(&3, &mut remove_nodes).unwrap(), 4);
+        // assert_eq!(new_linked_list.get(&5, &mut remove_nodes).unwrap(), 8);
+        // assert_eq!(new_linked_list.get(&2, &mut remove_nodes), None);
+    }
+
+    #[test]
+    fn more_linked_list_tests() {
+        let mut remove_nodes = Vec::new();
+
+        let new_linked_list = LinkedList::default();
+        println!(
+            "Insert: {:?}",
+            new_linked_list.insert(5, 3, &mut remove_nodes)
+        );
+        println!(
+            "Insert: {:?}",
+            new_linked_list.insert(5, 8, &mut remove_nodes)
+        );
+        println!(
+            "Insert: {:?}",
+            new_linked_list.insert(2, 3, &mut remove_nodes)
+        );
+
+        println!("Get: {:?}", new_linked_list.get(&5, &mut remove_nodes));
+
+        // println!("{:?}", new_linked_list.head.load(OSC));
+        // new_linked_list.print();
+
+        new_linked_list.delete(&5, &mut remove_nodes);
+
+        // new_linked_list.print();
+    }
+}
+
+
+
